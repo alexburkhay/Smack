@@ -35,6 +35,7 @@ import org.jivesoftware.smack.packet.EmptyResultIQ;
 import org.jivesoftware.smack.packet.ErrorIQ;
 import org.jivesoftware.smack.packet.IQ;
 import org.jivesoftware.smack.packet.Message;
+import org.jivesoftware.smack.packet.ReadRecvState;
 import org.jivesoftware.smack.packet.Stanza;
 import org.jivesoftware.smack.packet.ExtensionElement;
 import org.jivesoftware.smack.packet.Presence;
@@ -153,6 +154,8 @@ public class PacketParserUtils {
             return parseIQ(parser);
         case Presence.ELEMENT:
             return parsePresence(parser);
+            case ReadRecvState.ELEMENT:
+                return parseReadRecv(parser);
         default:
             throw new IllegalArgumentException("Can only parse message, iq or presence, not " + name);
         }
@@ -597,6 +600,62 @@ public class PacketParserUtils {
             }
         }
         return presence;
+    }
+
+    /**
+     * Parses a ReadRecvState packet.
+     *
+     * @param parser the XML parser, positioned at the start of a ReadRecvState packet.
+     * @return a ReadRecvState packet.
+     * @throws IOException
+     * @throws XmlPullParserException
+     * @throws SmackException
+     */
+    public static ReadRecvState parseReadRecv(XmlPullParser parser)
+        throws XmlPullParserException, IOException, SmackException {
+        ParserUtils.assertAtStartTag(parser);
+        final int initialDepth = parser.getDepth();
+
+        ReadRecvState readRecvState = new ReadRecvState();
+        readRecvState.setTo(parser.getAttributeValue("", "to"));
+        readRecvState.setFrom(parser.getAttributeValue("", "from"));
+        readRecvState.setStanzaId(parser.getAttributeValue("", "id"));
+
+        String language = getLanguageAttribute(parser);
+        if (language != null && !"".equals(language.trim())) {
+            readRecvState.setLanguage(language);
+        }
+
+        // Parse sub-elements
+        outerloop: while (true) {
+            int eventType = parser.next();
+            switch (eventType) {
+                case XmlPullParser.START_TAG:
+                    String elementName = parser.getName();
+                    String namespace = parser.getNamespace();
+                    switch(elementName) {
+                        default:
+                            // Otherwise, it must be a packet extension.
+                            // Be extra robust: Skip PacketExtensions that cause Exceptions, instead of
+                            // failing completely here. See SMACK-390 for more information.
+                            try {
+                                PacketParserUtils.addExtensionElement(readRecvState, parser, elementName, namespace);
+                            } catch (Exception e) {
+                                LOGGER.log(Level.WARNING,
+                                           "Failed to parse extension packet in ReadRecvState packet. Attributes: from="
+                                           + readRecvState.getFrom() + " id=" + readRecvState.getStanzaId(), e);
+                            }
+                            break;
+                    }
+                    break;
+                case XmlPullParser.END_TAG:
+                    if (parser.getDepth() == initialDepth) {
+                        break outerloop;
+                    }
+                    break;
+            }
+        }
+        return readRecvState;
     }
 
     /**

@@ -52,7 +52,7 @@ allprojects {
 	targetCompatibility = sourceCompatibility
 	version = shortVersion
 	if (isSnapshot) {
-		version += '-SNAPSHOT'
+//		version += '-SNAPSHOT'
 	}
 
 	ext.sharedManifest = manifest {
@@ -326,7 +326,7 @@ def getAndroidJavadocOffline() {
 }
 
 def getAndroidHome() {
-	def androidHomeEnv = System.getenv("ANDROID_HOME")
+	def androidHomeEnv = System.getenv("ANDROID_HOME") // "/Users/alexander/Library/Android/sdk"
 	if (androidHomeEnv == null) {
 		throw new Exception("ANDROID_HOME environment variable is not set")
 	}

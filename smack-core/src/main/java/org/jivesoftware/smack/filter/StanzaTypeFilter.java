@@ -18,6 +18,7 @@
 package org.jivesoftware.smack.filter;
 
 import org.jivesoftware.smack.packet.Message;
+import org.jivesoftware.smack.packet.ReadRecvState;
 import org.jivesoftware.smack.packet.Stanza;
 import org.jivesoftware.smack.packet.Presence;
 import org.jivesoftware.smack.packet.IQ;
@@ -38,6 +39,7 @@ public final class StanzaTypeFilter implements StanzaFilter {
     public static final StanzaTypeFilter PRESENCE = new StanzaTypeFilter(Presence.class);
     public static final StanzaTypeFilter MESSAGE = new StanzaTypeFilter(Message.class);
     public static final StanzaTypeFilter IQ = new StanzaTypeFilter(IQ.class);
+    public static final StanzaTypeFilter READRECVSTATE = new StanzaTypeFilter(ReadRecvState.class);
 
     private final Class<? extends Stanza> packetType;
 
